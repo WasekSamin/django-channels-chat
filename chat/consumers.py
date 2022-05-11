@@ -8,20 +8,20 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         await self.accept()
         print(f"{self.scope['user']} joined!")
-        
 
     # Updating user online status
+
     def update_user_status(self, email, is_online):
         accounts = Account.objects.values()
         account_list = list(map(lambda i: i, accounts))
 
-        account_obj = find_obj(account_list, "email", email, 0, len(account_list))
+        account_obj = find_obj(account_list, "email",
+                               email, 0, len(account_list))
 
         if account_obj is not None:
             account_obj = Account(**account_obj)
             account_obj.is_online = is_online
             account_obj.save()
-
 
     async def receive_json(self, data):
         print(data)
@@ -37,12 +37,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_send(
                 "public",
                 {
-                    "type": "user.connect", # This is a function name. '.' represents '_'
+                    "type": "user.connect",  # This is a function name. '.' represents '_'
                     "connect": True,
                     "user_id": self.scope["user"].id
                 }
             )
-
 
     async def disconnect(self, data):
         print(f"{self.scope['user']} is disconnected!")
@@ -71,5 +70,3 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "disconnect": event["disconnect"],
             "user_id": event["user_id"]
         })
-
-

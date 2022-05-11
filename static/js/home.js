@@ -13,11 +13,12 @@ window.addEventListener("DOMContentLoaded", () => {
         }));
     });
 
-    ws.onmessage = async(e) => {
+    ws.onmessage = e => {
         if (conn) {
             const data = JSON.parse(e.data);
             console.log(data);
 
+            // Updating user online status
             if (data.connect) {
                 const account = document.getElementById(`account-${data.user_id}`);
 
