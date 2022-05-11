@@ -1,0 +1,44 @@
+/* Ripple effect */
+.ripple__button {
+  background-position: center;
+  transition: background 0.8s;
+}
+
+.ripple__button:hover {
+  background: rgb(99 102 241)
+    radial-gradient(circle, transparent 1%, rgb(99 102 241) 1%) center/15000%;
+}
+
+.ripple__button:active {
+  background-color: rgb(165 180 252);
+  background-size: 100%;
+  transition: background 0s;
+}
+
+.button__loader {
+    animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-height: 500px) {
+    .auth__mainDiv {
+        height: auto;
+        margin-top: 2.5rem;
+        margin-bottom: 2.5rem;
+    }
+}
+
+@media (max-width: 359px) {
+    .welcome__authTitle {
+        font-size: 1rem;
+    }
+}

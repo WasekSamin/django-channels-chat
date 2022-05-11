@@ -1,0 +1,3 @@
+.chat__userInfo {
+    width: calc(100% - 45px);
+}

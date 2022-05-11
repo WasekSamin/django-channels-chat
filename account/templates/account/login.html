@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+{% comment %}Custom css + js{% endcomment %}
+<link rel="stylesheet" href="{% static 'css/register.css' %}">
+
+<script src="{% static 'js/login.js' %}" defer></script>
+
+<div class="max-w-screen-2xl mx-auto w-full h-screen grid place-items-center px-5 md:px-10 lg:px-20 auth__mainDiv">
+    <div class="flex w-full flex-col gap-y-3 items-center">
+        <h3 class="capitalize font-semibold text-slate-300 text-lg tracking-wide welcome__authTitle">Welcome to Samin's Chat App</h3>
+
+        <form id="login__form" method="POST" action="{% url 'account:user-login' %}" class="flex flex-1 flex-col p-5 bg-slate-600 shadow-lg rounded-lg w-full md:w-[80%] lg:w-1/2">
+            {% csrf_token %}
+            <h5 class="text-base text-slate-300 font-semibold uppercase text-center mb-3 tracking-wide">Sign In</h5>
+            <p class="text-rose-500 text-center font-semibold mb-3 hidden" id="error__msg"></p>
+            <div class="relative z-0 w-full mb-5 group">
+                <input autofocus="true" type="email" id="email" name="email" class="text-slate-300 block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-400 appearance-none focus:outline-none focus:ring-0 focus:border-indigo-400 peer" placeholder=" " required />
+                <label for="email" class="text-slate-400 peer-focus:font-medium absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-400 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Email</label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+                <input type="password" id="password" name="password" class="text-slate-300 block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-400 appearance-none focus:outline-none focus:ring-0 focus:border-indigo-400 peer" placeholder=" " required />
+                <label for="password" class="text-slate-400 peer-focus:font-medium absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-indigo-400 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6">Password</label>
+            </div>
+            <div class="flex flex-1">
+                <button type="submit" id="login__submitButton" class="flex flex-1 justify-center items-center gap-x-2 rounded font-medium text-slate-200 bg-indigo-500 cursor-pointer border-0 outline-none hover:shadow-lg px-10 py-2 transition-0.3s duration-300 ease-in-out ripple__button">
+                    Login 
+                        <div id="login__buttonLoader" class="hidden button__loader">
+                            <span class="iconify text-base" data-icon="icomoon-free:spinner9"></span>
+                        </div>
+                </button>
+            </div>
+
+            <div class="text-xs text-slate-300 mt-5 text-center">
+                <p>Don't have an account? <a href="{% url 'account:register' %}" class="underline hover:text-indigo-400 transition-colors duration-300 ease-in-out">Sign up</a> here</p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

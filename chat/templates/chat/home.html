@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<script src="{% static 'js/home.js' %}" defer></script>
+
+<div class="max-w-screen-2xl mx-auto">
+    <div class="flex">
+        {% include "chat/chat_left.html" %}
+        {% include "chat/home_right.html" %}
+    </div>
+</div>
+
+{% endblock %}
