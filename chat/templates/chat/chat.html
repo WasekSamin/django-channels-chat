@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+{% comment %}Custom js{% endcomment %}
+<script src="{% static 'js/chat.js' %}" defer></script>
+
+<div class="max-w-screen-2xl mx-auto">
+    <div class="flex">
+        {% include "chat/chat_left.html" %}
+        {% include "chat/chat_right.html" %}
+    </div>
+
+    <input type="hidden" id="user__id" value="{{ request.user.id }}">
+</div>
+{% endblock %}

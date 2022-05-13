@@ -1,0 +1,11 @@
+#select__chatroom {
+    height: calc(100% - 45px);
+}
+
+.home__rightTopUsername {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

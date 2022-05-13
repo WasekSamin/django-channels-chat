@@ -1,0 +1,18 @@
+.chat__rightTopUsername,
+.chat__rightMiddleUsername {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#chat__rightMiddle {
+    height: calc(100% - 90px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.chat__rightBottom {
+    width: calc(100% - 20px);
+}

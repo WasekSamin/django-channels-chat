@@ -37,6 +37,25 @@ window.addEventListener("DOMContentLoaded", () => {
                     accountStatus.classList.remove("text-green-500");
                     accountStatus.classList.add("text-rose-500");
                 }
+            } else if (data.create_message_success) {
+                ws.send(JSON.stringify({
+                    ...data,
+                    receiverCurrentLoc: "home",
+                    command: "receive_message"
+                }));
+            } else if (data.receive_message_success) {
+                if (data.show_as_notification) {
+                    // Updating last message on receiver side
+                    const account = document.getElementById(`account-${data.sender_id}`);
+                    const lastMsg = account.querySelector(".last_message");
+                    lastMsg.innerText = data.message;
+
+                    const status = document.getElementById(`status-${data.sender_id}`);
+                    const showStatus = status.querySelector(".iconify");
+
+                    showStatus.classList.remove("text-transparent");
+                    showStatus.classList.add("text-indigo-400");
+                }
             }
         }
     }

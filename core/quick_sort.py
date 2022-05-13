@@ -15,6 +15,7 @@ def partition(lst, key, start, end):
     for i in range(start, end):
         if lst[i][key] < pivot_val:
             lst[i], lst[pivot_index] = lst[pivot_index], lst[i]
+            pivot_index += 1
 
     lst[pivot_index], lst[end] = lst[end], lst[pivot_index]
 

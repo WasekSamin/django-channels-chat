@@ -7,22 +7,5 @@
     <div class="mb-3 px-3">
         {% include "chat/chat_left_top.html" %}
     </div>
-
-    {% if accounts %}
-        <div class="flex h-full pl-3 pr-1 pb-16 flex-col gap-y-3 overflow-x-hidden overflow-y-auto">
-            {% for account in accounts %}
-                <div id="account-{{ account.id}}" class="flex items-center">
-                    <img src="{% static 'images/user.png' %}" class="w-[20px] h-[20px] object-contain mr-1" alt="">
-                    <div class="flex flex-col gap-y-0.5 pl-0.5 chat__userInfo">
-                        <p class="font-semibold text-slate-300 tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">{{ account.username }}</p>
-                        <p class="text-slate-300 text-xs whitespace-nowrap overflow-hidden text-ellipsis">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Nesciunt, quae.</p>
-                        <p class="flex items-center text-xs font-medium text-slate-400 user__status">Status: <span class="iconify text-xl text-green-500" data-icon="ci:dot-03-m"></span></p>
-                    </div>
-                    <div>
-                        <span class="iconify text-lg text-indigo-400" data-icon="ci:dot-03-m"></span>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+    {% include "chat/chat_left_bottom.html" %}
 </div>
