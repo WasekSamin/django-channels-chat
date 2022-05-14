@@ -11,6 +11,7 @@
         {% include "chat/chat_left.html" %}
         {% include "chat/home_right.html" %}
     </div>
+    {{ request.user.id|json_script:"user__id" }}
 </div>
 
 {% endblock %}

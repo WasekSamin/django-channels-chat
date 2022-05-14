@@ -13,6 +13,6 @@
         {% include "chat/chat_right.html" %}
     </div>
 
-    <input type="hidden" id="user__id" value="{{ request.user.id }}">
+    {{ request.user.id|json_script:"user__id" }}
 </div>
 {% endblock %}

@@ -3,6 +3,8 @@ from channels.db import database_sync_to_async
 from account.models import Account
 from .models import *
 from core.find_object import find_obj
+from django.shortcuts import redirect
+from .random_slug_generator import random_slug_generator
 
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
@@ -26,7 +28,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, data):
         print(f"{data=}")
-        privateChat = data.get("privateChat", None)
+        private_chat = data.get("privateChat", None)
+        group_create = data.get("groupCreate", None)
 
         # Joining a group
         if data["command"] == "join":
@@ -38,7 +41,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             self.groups.append("public")
             
             # For private chat
-            if privateChat:
+            if private_chat:
                 room_name = data["groupName"].split("/")[-2]
 
                 await self.channel_layer.group_add(
@@ -48,6 +51,19 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 self.groups.append(room_name)
 
                 print("GROUPS:", self.groups)
+            elif group_create:
+                room_name = data["roomName"]
+                users = data["users"]
+
+                await self.channel_layer.group_send(
+                    "public",
+                    {
+                        "type": "group.create",
+                        "room_name": room_name,
+                        "users": users,
+                        "creatorId": data["creatorId"]
+                    }
+                )
 
             for group in self.groups:
                 # Trigger when user connect to socket
@@ -135,6 +151,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         await database_sync_to_async(self.update_user_status)(email=self.scope["user"].email, is_online=False)
         # # Trigger when user get disconnect from socket
         for group in self.groups:
+            print(group)
             await self.channel_layer.group_send(
                 group,
                 {
@@ -276,3 +293,57 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     sender_email=sender.email,
                     receiver_email=receiver.email
                 )
+
+
+    # Create group chatroom
+    async def group_create(self, event):
+        users = event["users"]
+        print("users:", users)
+        given_room_name = event["room_name"]
+        creatorId = event["creatorId"]
+
+        group_chatroom_obj = await database_sync_to_async(self.create_group)(given_room_name=given_room_name, users=users, creatorId=creatorId)
+
+        if group_chatroom_obj is not None:
+            if self.scope["user"].id in users:
+                await self.send_json({
+                    "room": group_chatroom_obj.room,
+                    "given_room_name": group_chatroom_obj.given_room_name,
+                    "creator": group_chatroom_obj.creator.id,
+                    "users": event["users"],
+                    "group_created": True
+                })
+        else:
+            await self.send_json({
+                "group_created": False
+            })
+
+
+    def create_group(self, given_room_name, users, creatorId):
+        print("FROM CREATE GROUP")
+
+        group_chatrooms = GroupChatroom.objects.values()
+        group_chatroom_list = list(map(lambda i: i, group_chatrooms))
+
+        accounts = Account.objects.values()
+        account_list = list(map(lambda i: i, accounts))
+
+        account_obj = find_obj(account_list, "id", creatorId, 0, len(account_list))
+
+        if account_obj is not None:
+            account_obj = Account(**account_obj)
+
+            room_slug = random_slug_generator(group_chatroom_list, "room")
+
+            group_chatroom_obj = GroupChatroom(
+                room=room_slug,
+                given_room_name=given_room_name,
+                creator=account_obj
+            )
+            group_chatroom_obj.save()
+
+            for user in users:
+                group_chatroom_obj.users.add(user)
+
+            return group_chatroom_obj
+        return None

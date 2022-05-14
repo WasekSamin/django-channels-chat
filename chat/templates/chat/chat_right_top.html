@@ -2,6 +2,9 @@
 
 <div id="account__right-{{ request.user.id }}" class="flex items-center justify-between pr-3">
     <div class="flex items-center gap-x-1">
+        <a href="{% url 'chat:home' %}">
+            <span class="iconify text-lg text-slate-200" data-icon="ep:back"></span>
+        </a>
         <img src="{% static 'images/user.png' %}" class="w-[20px] h-[20px] object-contain" alt="">
         <div class="text-slate-300">
             <h5 class="font-semibold mr-1 chat__rightTopUsername">{{ user2.username }}</h5>
@@ -10,9 +13,9 @@
     </div>
 
     <div class="flex items-center gap-x-3">
-        <button class="flex items-center gap-x-0.5 py-1 px-3 text-slate-100 bg-indigo-500 rounded cursor-pointer hover:bg-indigo-600 hover:shadow transition-all duration-300 ease-in-out">
-            <span class="iconify" data-icon="fluent:call-32-filled"></span>
-            Call
+        <button id="create__chatGroup" class="flex items-center gap-x-0.5 py-1 px-3 text-slate-100 bg-indigo-500 rounded cursor-pointer hover:bg-indigo-600 hover:shadow transition-all duration-300 ease-in-out">
+            <span class="iconify" data-icon="akar-icons:people-group"></span>
+            Create Group
         </button>
         <a href="{% url 'account:logout' %}" class="flex items-center gap-x-0.5 py-1 px-3 text-slate-100 bg-rose-600 rounded cursor-pointer hover:bg-rose-700 hover:shadow transition-all duration-300 ease-in-out">
             <span class="iconify" data-icon="ri:logout-box-r-line"></span>

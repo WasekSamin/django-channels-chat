@@ -1,0 +1,48 @@
+#chat__groupModal {
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+    transform: scale(0);
+    transition: all 0.3s ease-in-out;
+}
+
+#chat__groupModal.show__chatModal {
+    z-index: 20;
+    transform: scale(100%);
+}
+
+#chat__groupModal > div {
+    transform: translate(-50%, -50%);
+}
+
+.chat__groupUsername {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#chat__groupSpinner {
+    animation: groupSpinner 1s infinite linear;
+}
+
+@keyframes groupSpinner {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (min-width: 1536px) {
+    #chat__groupModal {
+        left: 50%;
+        transform: translate(-50%) scale(0);
+    }
+
+    #chat__groupModal.show__chatModal {
+        transform: translateX(-50%) scale(100%);
+    }
+}

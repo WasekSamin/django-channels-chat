@@ -1,0 +1,31 @@
+{% load static %}
+
+{% comment %}Custom css + js{% endcomment %}
+<link rel="stylesheet" href="{% static 'css/chat_group_modal.css' %}">
+<script src="{% static 'js/chat_group_modal.js' %}" defer></script>
+
+<div id="chat__groupModal" class="fixed top-0 left-0 w-full max-w-screen-2xl mx-auto h-screen">
+    <div class="flex flex-col gap-y-3 absolute left-[50%] top-[50%] py-3 pl-3 h-[70vh] w-[50%] overflow-x-hidden bg-slate-700 rounded-lg shadow-lg z-50">
+        <h5 class="text-lg text-slate-200 font-semibold">Add People</h5>
+
+        <div class="pr-3">
+            <input id="group_name" type="text" placeholder="Enter group name..." class="w-full border mb-3 border-gray-500 bg-slate-600 text-slate-300 py-1 px-3 rounded focus:ring-2 focus:ring-gray-500 focus:border-gray-300 focus:outline-none" required>
+        </div>
+
+        <p id="group__modalErrorMsg" class="text-rose-500 text-center font-semibold hidden"></p>
+
+        {% comment %}All people{% endcomment %}
+        <div id="add__people" class="h-full flex flex-col gap-y-3 overflow-x-hidden overflow-y-auto"></div>
+        
+        <div class="flex gap-x-1 items-center pr-3">
+            <button id="finish_create_group" class="flex flex-1 items-center justify-center gap-x-0.5 py-1.5 px-3 text-slate-100 bg-indigo-500 rounded cursor-pointer hover:bg-indigo-600 hover:shadow transition-all duration-300 ease-in-out">
+                <span class="iconify text-lg" data-icon="cil:thumb-up"></span>
+                Create
+            </button>
+            <button id="cancel_create_group" class="flex flex-1 items-center justify-center gap-x-0.5 py-1.5 px-3 text-slate-100 bg-rose-500 rounded cursor-pointer hover:bg-rose-600 hover:shadow transition-all duration-300 ease-in-out">
+                <span class="iconify text-lg" data-icon="codicon:chrome-close"></span>
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>

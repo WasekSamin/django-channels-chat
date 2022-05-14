@@ -4,6 +4,9 @@ window.addEventListener("DOMContentLoaded", () => {
     const chatSubmitBtn = document.getElementById("chat__submitBtn");
     const chatMsgForm = document.getElementById("chat__msgForm");
 
+    const createChatGroup = document.getElementById("create__chatGroup");
+    const chatLeftBottomUsers = document.getElementById("chat__leftBottomUsers");
+
     const ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/");
     let conn = false;
 
@@ -43,6 +46,7 @@ window.addEventListener("DOMContentLoaded", () => {
             if (chatMsgInput.value.trim() === "") return;
             
             sendMessage(chatMsgInput.value.trim());
+            chatMsgForm.reset();
         });
 
         // Send message via socket
@@ -98,11 +102,11 @@ window.addEventListener("DOMContentLoaded", () => {
                 let currentLoc = window.location.href.split("/");
                 currentLoc = currentLoc[currentLoc.length - 2];
                 const userId = document.getElementById("user__id");
-                
+
                 let senderId;
 
                 if (userId) {
-                    senderId = Number(userId.value);
+                    senderId = JSON.parse(userId.innerText);
                 } else {
                     window.location.reload();
                 }
@@ -183,4 +187,58 @@ window.addEventListener("DOMContentLoaded", () => {
             }
         }
     }
+
+    // If Create group button is clicked
+    createChatGroup.addEventListener("click", () => {
+        // Getting all the users
+        const users = chatLeftBottomUsers.querySelectorAll(".chat__userInfo");
+
+        // Appending user id and name into userInfo array
+        const promiseUserInfo =  new Promise((resolve, reject) => {
+            let userInfo = [];
+
+            users.forEach(user => {
+                const userTagsInfo = user.querySelector("p");
+
+                const userId = Number(userTagsInfo.id.split("-")[1]);
+                const image = document.getElementById(`account-${userId}`).querySelector("img").src;
+                const username = userTagsInfo.innerText || userTagsInfo.textContent;
+
+                userInfo.push({id: userId, username: username, image: image});
+            })
+
+            if (userInfo.length > 0)
+                resolve(userInfo);
+            else
+                reject("Something is wrong!");
+        })
+
+        promiseUserInfo.then(users => {
+            console.log(users);
+
+            const chatGroupModal = document.getElementById("chat__groupModal");
+            const addPeople = chatGroupModal.querySelector("#add__people");
+            
+            users.map(user => {
+                const userDiv = document.createElement("div");
+
+                userDiv.setAttribute("user-", user.id);
+                userDiv.setAttribute("class", "flex items-center justify-between pr-3");
+
+                userDiv.innerHTML = `
+                    <label for="selected-user-${user.id}" class="flex w-full items-center gap-x-1 cursor-pointer">
+                        <img src="${user.image}" class="w-[20px] min-w-[20px] h-[20px] object-contain" alt="">
+                        <p class="text-slate-200 font-medium chat__groupUsername mr-1">${user.username}</p>
+                    </label>
+                    <input id="selected-user-${user.id}" type="checkbox" class="indeterminate:bg-gray-300 checked:bg-blue-500 default:ring-2 cursor-pointer" />
+                `
+
+                addPeople.appendChild(userDiv);
+            });
+
+            chatGroupModal.classList.add("show__chatModal");
+        }).catch(err => {
+            console.error(err);
+        })
+    })
 })

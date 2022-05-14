@@ -1,4 +1,3 @@
-from django.dispatch import receiver
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views import View
@@ -9,9 +8,8 @@ from core.quick_sort import quick_sort
 from .models import *
 from account.models import *
 from core.find_object import find_obj
-import string
-import random
 from copy import deepcopy
+from .random_slug_generator import random_slug_generator
 
 
 # Find all the chat nofication where request.user is as receiver
@@ -194,6 +192,9 @@ class ChatroomView(LoginRequiredMixin, View):
                 user1 = chatroom_obj["user2"]
                 user2 = chatroom_obj["user1"]
 
+            if user1.email != request.user.email and user2.email != request.user.email:
+                return redirect("chat:home")
+
             chats = Chat.objects.all()
             chat_list = list(map(lambda i: {
                 "id": i.id,
@@ -221,18 +222,6 @@ class ChatroomView(LoginRequiredMixin, View):
         return render(request, "chat/chat.html", args)
 
 
-# Create random room slug of chatroom
-def random_slug_generator(lst, key, size=20, chars=string.ascii_letters + string.digits):
-    random_val = ''.join(random.choice(chars) for _ in range(size))
-
-    found_obj = find_obj(lst, key, random_val, 0, len(lst))
-
-    # If the found object already exists, make the function run again
-    if found_obj is not None:
-        return random_slug_generator(lst, key, size=20, chars=string.ascii_letters + string.digits)
-    return random_val
-
-
 class CreateChatroomView(LoginRequiredMixin, View):
     login_url = "/account/login/"
 
@@ -256,7 +245,6 @@ class CreateChatroomView(LoginRequiredMixin, View):
 
             # If chatroom already exists
             if chatroom_obj is not None:
-                print("CHATROOM1")
                 return redirect(f"/chat/{chatroom_obj['room']}")
             else:
                 # For user2 + user1
@@ -266,7 +254,6 @@ class CreateChatroomView(LoginRequiredMixin, View):
                     chatroom_list, "concat_user", concat_user, 0, len(chatroom_list))
 
                 if chatroom_obj is not None:
-                    print("CHATROOM2")
                     return redirect(f"/chat/{chatroom_obj['room']}")
                 # Create a new chatroom
                 else:
