@@ -6,6 +6,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const createChatGroup = document.getElementById("create__chatGroup");
     const chatLeftBottomUsers = document.getElementById("chat__leftBottomUsers");
+    const searchPeople = document.getElementById("search__people");
 
     const finishCreateGroupBtn = document.getElementById("finish_create_group");
     const chatGroupModalErrorMsg = document.getElementById("group__modalErrorMsg");
@@ -14,9 +15,28 @@ window.addEventListener("DOMContentLoaded", () => {
     const ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/");
     let conn = false;
 
+    document.querySelector(".mobile__userChatOptions").style.display = "none";
+
+    if (window.innerWidth <= 850) {
+        document.querySelector(".chat__leftMainContainer").style.display = "none";
+        document.querySelector(".group__rightMainContent").style.width = "100%";
+        createChatGroup.style.display = "none";
+    }
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth <= 850) {
+            document.querySelector(".chat__leftMainContainer").style.display = "none";
+            document.querySelector(".group__rightMainContent").style.width = "100%";
+            createChatGroup.style.display = "none";
+        } else {
+            document.querySelector(".chat__leftMainContainer").style.display = "block";
+            document.querySelector(".group__rightMainContent").style.width = "75%";
+            createChatGroup.style.display = "flex";
+        }
+    })
+
     ws.addEventListener("open", () => {
         conn = true;
-        console.log("OPENED");
 
         const currentLoc = window.location.href;
         ws.send(JSON.stringify({
@@ -63,10 +83,24 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     })
 
+    // Search people
+    searchPeople.addEventListener("keyup", e => {
+        const userInfo = document.querySelectorAll(".chat__userInfo");
+
+        for (let i=0; i<userInfo.length; i++) {
+            const username = userInfo[i].querySelector("p").innerText || userInfo[i].querySelector("p").textContent;
+
+            if (username.toLowerCase().indexOf(e.target.value.toLowerCase()) > -1) {
+                document.querySelectorAll("#chat__leftBottomUsers > a")[i].style.display = "";
+            } else {
+                document.querySelectorAll("#chat__leftBottomUsers > a")[i].style.display = "none";
+            }
+        }
+    })
+
     ws.onmessage = e => {
         if (conn) {
             const data = JSON.parse(e.data);
-            console.log("DATA:", data);
 
             // Updating user online status
             if (data.connect) {
@@ -94,6 +128,25 @@ window.addEventListener("DOMContentLoaded", () => {
                     const onlineStatus = document.getElementById("online__status");
                     onlineStatus.classList.add("text-rose-500");
                     onlineStatus.classList.remove("text-green-500");
+                }
+            } else if (data.create_message_success) {
+                ws.send(JSON.stringify({
+                    ...data,
+                    receiverCurrentLoc: "home",
+                    command: "receive_message"
+                }));
+            } else if (data.receive_message_success) {
+                if (data.show_as_notification) {
+                    // Updating last message on receiver side
+                    const account = document.getElementById(`account-${data.sender_id}`);
+                    const lastMsg = account.querySelector(".last_message");
+                    lastMsg.innerText = data.message;
+
+                    const status = document.getElementById(`status-${data.sender_id}`);
+                    const showStatus = status.querySelector(".iconify");
+
+                    showStatus.classList.remove("text-transparent");
+                    showStatus.classList.add("text-indigo-400");
                 }
             } else if (data.group_create_message_success) {   // Sender side
                 ws.send(JSON.stringify({
@@ -127,14 +180,14 @@ window.addEventListener("DOMContentLoaded", () => {
                     const chatDiv = document.getElementById("chat__rightChatDiv");
 
                     const msgDiv = document.createElement("div");
-                    msgDiv.setAttribute("class", "flex gap-x-1 w-1/2 place-self-end")
+                    msgDiv.setAttribute("class", "flex gap-x-1 w-1/2 place-self-end chat__leftMiddleChatContainer")
                     msgDiv.innerHTML = `
                         <div>
                             <img src="/static/images/user.png" class="w-[20px] min-w-[20px] h-[20px] mt-1 object-contain" alt="">
                         </div>
-                        <div class="flex flex-col gap-y-1 text-slate-300 text-sm">
+                        <div class="flex flex-col gap-y-1 text-slate-300 text-sm pr-3">
                             <h5 class="font-semibold chat__rightMiddleUsername">${data.sender_username}</h5>
-                            <p class="break-all">${data.message}</p>
+                            <p class="break-word">${data.message}</p>
                             <p class="text-xs">${data.created_at}</p>
                         </div>
                     `
@@ -147,8 +200,6 @@ window.addEventListener("DOMContentLoaded", () => {
                 currentLoc = currentLoc[currentLoc.length - 2];
                 const userId = JSON.parse(document.getElementById("user__id").innerText);
                 
-                console.log("FROM RECEIVER SIDE DATA:", data);
-
                 if (currentLoc === data.room) {
                     // Append message on receiver side
                     if (data.append_to_message_field && userId === data["receiver_id"]) {
@@ -163,14 +214,14 @@ window.addEventListener("DOMContentLoaded", () => {
                             const chatDiv = document.getElementById("chat__rightChatDiv");
 
                             const msgDiv = document.createElement("div");
-                            msgDiv.setAttribute("class", "flex gap-x-1 w-1/2")
+                            msgDiv.setAttribute("class", "flex gap-x-1 w-1/2 chat__leftMiddleChatContainer")
                             msgDiv.innerHTML = `
                                 <div>
                                     <img src="/static/images/user.png" class="w-[20px] min-w-[20px] h-[20px] mt-1 object-contain" alt="">
                                 </div>
-                                <div class="flex flex-col gap-y-1 text-slate-300 text-sm">
+                                <div class="flex flex-col gap-y-1 text-slate-300 text-sm pr-3">
                                     <h5 class="font-semibold chat__rightMiddleUsername">${data.sender_username}</h5>
-                                    <p class="break-all">${data.message}</p>
+                                    <p class="break-word">${data.message}</p>
                                     <p class="text-xs">${data.created_at}</p>
                                 </div>
                             `
@@ -290,7 +341,6 @@ window.addEventListener("DOMContentLoaded", () => {
                 });
 
                 const selectedUserLabels = document.querySelectorAll(".selected_user_for_chatGroup");
-                // console.log(selectedUserLabels);
                 
                 selectedUserLabels.forEach(label => {
                     label.addEventListener("click", (e) => {

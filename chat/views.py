@@ -61,6 +61,12 @@ def find_accounts_with_last_msg(accounts, last_msg_list, current_user):
 
 
 ### For group ####
+# Find all the groups that request.user is joined in
+def find_user_connected_groups(group_chatroom_list, group_list, current_user):
+    group_list = [group for group in group_chatroom_list if current_user in group["users"].all()]
+    return group_list
+
+
 # Find all the group message seen list for current user
 def find_user_group_msg_seen_list(group_msg_seen_list, user_group_list, group_list):
     for group in user_group_list:
@@ -97,7 +103,7 @@ def find_user_group_with_notified_list(group_msg_seen_list, group_list, current_
             group_list.append({
                 "group": msg_seen["group"],
                 "notify": False
-            }) 
+            })
     return group_list
 
 
@@ -120,6 +126,18 @@ def find_user_group_last_msg(user_group_list, last_msg_list):
     return last_msg_list
 
 
+# Update group message notification for current user
+def update_group_message_seen(group_msg_seen_list, room, current_user):
+    group_msg_seen_obj = find_obj(group_msg_seen_list, "room", room, 0, len(group_msg_seen_list))
+
+    if group_msg_seen_obj is not None:
+        group_msg_seen_obj = GroupChatMessageSeen(**group_msg_seen_obj)
+
+        if current_user not in group_msg_seen_obj.users.all():
+            group_msg_seen_obj.users.add(current_user.id)
+
+            return True
+    return False
 
 
 class HomeView(LoginRequiredMixin, View):
@@ -363,7 +381,7 @@ class CreateChatroomView(LoginRequiredMixin, View):
 
         if user2 is not None:
             concat_user = f"{user1.email.split('@')[0]}{user2['email'].split('@')[0]}"
-            print(concat_user)
+            # print(concat_user)
 
             chatrooms = Chatroom.objects.values()
             chatroom_list = list(map(lambda i: i, chatrooms))
@@ -411,24 +429,6 @@ class CreateMessageView(LoginRequiredMixin, View):
         json_resp = {"error": False}
 
         return JsonResponse(json_resp, safe=False)
-
-
-# Find all the groups that request.user is joined in
-def find_user_connected_groups(group_chatroom_list, group_list, current_user):
-    group_list = [group for group in group_chatroom_list if current_user in group["users"].all()]
-    return group_list
-
-def update_group_message_seen(group_msg_seen_list, room, current_user):
-    group_msg_seen_obj = find_obj(group_msg_seen_list, "room", room, 0, len(group_msg_seen_list))
-
-    if group_msg_seen_obj is not None:
-        group_msg_seen_obj = GroupChatMessageSeen(**group_msg_seen_obj)
-
-        if current_user not in group_msg_seen_obj.users.all():
-            group_msg_seen_obj.users.add(current_user.id)
-
-            return True
-    return False
 
 
 class GroupChatroomView(LoginRequiredMixin, View):

@@ -1,16 +1,58 @@
 window.addEventListener("DOMContentLoaded", () => {
     const createChatGroup = document.getElementById("create__chatGroup");
+    const createChatGroupForMobile = document.getElementById("create__chatGroupForMobile");
     const chatLeftBottomUsers = document.getElementById("chat__leftBottomUsers");
     const finishCreateGroupBtn = document.getElementById("finish_create_group");
     const chatGroupModalErrorMsg = document.getElementById("group__modalErrorMsg");
+    const searchPeople = document.getElementById("search__people");
+
     let groupSelectedUsers = [];
+
+    if (window.innerWidth <= 850) {
+        document.querySelector(".chat__leftMainContainer").style.width = "100%";
+        document.querySelector(".home__rightMainContent").style.display = "none";
+        document.querySelector(".mobile__userChatOptions").style.display = "inline";
+        document.querySelector("#home__rightTopMainContent").style.paddingRight = 0;
+        document.querySelector("#home__rightTopMainContent").style.marginBottom = "0.75rem";
+    }
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth <= 850) {
+            document.querySelector(".chat__leftMainContainer").style.width = "100%";
+            document.querySelector(".home__rightMainContent").style.display = "none";
+            document.querySelector(".mobile__userChatOptions").style.display = "inline";
+            document.querySelector("#home__rightTopMainContent").style.paddingRight = 0;
+            document.querySelector("#home__rightTopMainContent").style.marginBottom = "0.75rem";
+
+        } else {
+            document.querySelector(".chat__leftMainContainer").style.width = "25%";
+            document.querySelector(".home__rightMainContent").style.display = "block";
+            document.querySelector(".mobile__userChatOptions").style.display = "none";
+            document.querySelector("#home__rightTopMainContent").style.paddingRight = "0.75rem";
+            document.querySelector("#home__rightTopMainContent").style.marginBottom = 0;
+        }
+    })
+
+    // Search people
+    searchPeople.addEventListener("keyup", e => {
+        const userInfo = document.querySelectorAll(".chat__userInfo");
+
+        for (let i=0; i<userInfo.length; i++) {
+            const username = userInfo[i].querySelector("p").innerText || userInfo[i].querySelector("p").textContent;
+
+            if (username.toLowerCase().indexOf(e.target.value.toLowerCase()) > -1) {
+                document.querySelectorAll("#chat__leftBottomUsers > a")[i].style.display = "";
+            } else {
+                document.querySelectorAll("#chat__leftBottomUsers > a")[i].style.display = "none";
+            }
+        }
+    })
 
     let conn = false;
 
     const ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/");
 
     ws.addEventListener("open", () => {
-        console.log("Opened");
         conn = true;
 
         ws.send(JSON.stringify({
@@ -22,7 +64,6 @@ window.addEventListener("DOMContentLoaded", () => {
     ws.onmessage = e => {
         if (conn) {
             const data = JSON.parse(e.data);
-            console.log(data);
 
             // Updating user online status
             if (data.connect) {
@@ -98,7 +139,6 @@ window.addEventListener("DOMContentLoaded", () => {
                     command: "group_receive_message"
                 }));
             } else if (data.group_receive_message_success) {
-                console.log("FROM GROUP RECEIVE MESSAGE:", data);
                 if (data.show_as_notification) {
                     // Updating last message on receiver side
                     const group = document.getElementById(`group-${data.group_id}`);
@@ -118,8 +158,7 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // If Create group button is clicked
-    createChatGroup.addEventListener("click", () => {
+    const makeChatGroup = () => {
         // Getting all the users
         const users = chatLeftBottomUsers.querySelectorAll(".chat__userInfo");
         const chatGroupModal = document.getElementById("chat__groupModal");
@@ -136,7 +175,6 @@ window.addEventListener("DOMContentLoaded", () => {
             let userInfo = [];
 
             users.forEach(user => {
-                console.log(user)
                 const userTagsInfo = user.querySelector(".chat__userUsername");
                 
                 if (userTagsInfo) {
@@ -178,7 +216,6 @@ window.addEventListener("DOMContentLoaded", () => {
                 });
 
                 const selectedUserLabels = document.querySelectorAll(".selected_user_for_chatGroup");
-                // console.log(selectedUserLabels);
                 
                 selectedUserLabels.forEach(label => {
                     label.addEventListener("click", (e) => {
@@ -196,6 +233,16 @@ window.addEventListener("DOMContentLoaded", () => {
         }).catch(err => {
             console.error(err);
         })
+    }
+
+    // If Create group for mobile button is clicked
+    createChatGroup.addEventListener("click", () => {
+        makeChatGroup();
+    })
+
+    // If Create group button is clicked
+    createChatGroupForMobile.addEventListener("click", () => {
+        makeChatGroup();
     })
 
     finishCreateGroupBtn.addEventListener("click", () => {

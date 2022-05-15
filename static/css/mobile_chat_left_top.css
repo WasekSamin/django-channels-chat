@@ -1,0 +1,12 @@
+#create__chatGroupForMobile {
+    animation: glow_button 1s infinite linear;
+}
+
+@keyframes glow_button {
+    from {
+        box-shadow: 0 2px 15px rgba(186, 156, 207, 0);
+    }
+    to {
+        box-shadow: 0 2px 15px rgba(186, 156, 207, 0.7);
+    }
+}

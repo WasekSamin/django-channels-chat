@@ -1,48 +1,63 @@
 #chat__groupModal {
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: -1;
-    transform: scale(0);
-    transition: all 0.3s ease-in-out;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+  transform: scale(0);
+  transition: all 0.3s ease-in-out;
 }
 
 #chat__groupModal.show__chatModal {
-    z-index: 20;
-    transform: scale(100%);
+  z-index: 20;
+  transform: scale(100%);
 }
 
 #chat__groupModal > div {
-    transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
 }
 
 .chat__groupUsername {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #chat__groupSpinner {
-    animation: groupSpinner 1s infinite linear;
+  animation: groupSpinner 1s infinite linear;
+}
+
+#add__people::-webkit-scrollbar {
+  width: 6px;
+}
+
+#add__people::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  border-radius: 9999px;
+}
+
+#add__people::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
+  border-radius: 9999px;
 }
 
 @keyframes groupSpinner {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive */
 @media (min-width: 1536px) {
-    #chat__groupModal {
-        left: 50%;
-        transform: translate(-50%) scale(0);
-    }
+  #chat__groupModal {
+    left: 50%;
+    transform: translate(-50%) scale(0);
+  }
 
-    #chat__groupModal.show__chatModal {
-        transform: translateX(-50%) scale(100%);
-    }
+  #chat__groupModal.show__chatModal {
+    transform: translateX(-50%) scale(100%);
+  }
 }

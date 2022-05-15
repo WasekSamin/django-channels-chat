@@ -3,13 +3,13 @@
 <div id="chat__rightMiddle">
     <div id="chat__rightChatDiv" class="flex flex-col gap-y-3 mt-2">
         {% for chat in chats  %}
-            <div class="flex gap-x-1 w-1/2 {% if request.user.email == chat.sender.email %}place-self-end{% endif %}">
+            <div class="flex gap-x-1 w-1/2 {% if request.user.email == chat.sender.email %}place-self-end{% endif %} chat__leftMiddleChatContainer">
                 <div>
                     <img src="{% static 'images/user.png' %}" class="w-[20px] min-w-[20px] h-[20px] mt-1 object-contain" alt="">
                 </div>
-                <div class="flex flex-col gap-y-1 text-slate-300 text-sm">
+                <div class="flex flex-col gap-y-1 text-slate-300 text-sm pr-3">
                     <h5 class="font-semibold chat__rightMiddleUsername">{{ chat.sender.username }}</h5>
-                    <p class="break-all">{{ chat.message }}</p>
+                    <p class="break-word">{{ chat.message }}</p>
                     <p class="text-xs">{{ chat.created_at }}</p>
                 </div>
             </div>

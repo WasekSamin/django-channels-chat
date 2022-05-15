@@ -3,8 +3,13 @@
 {% comment %}Custom css{% endcomment %}
 <link rel="stylesheet" href="{% static 'css/chat_left.css' %}">
 
-<div class="w-[25%] h-screen pt-3 text-sm border-r border-gray-500">
+<div class="w-[25%] h-screen pt-3 text-sm border-r border-gray-500 chat__leftMainContainer">
     <div class="mb-3 px-3">
+
+        <div class="mobile__userChatOptions">
+            {% include "chat/mobile_chat_left_top.html" %}
+        </div>
+
         {% include "chat/chat_left_top.html" %}
     </div>
     {% include "chat/chat_left_bottom.html" %}

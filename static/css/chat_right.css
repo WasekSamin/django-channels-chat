@@ -1,18 +1,46 @@
 .chat__rightTopUsername,
 .chat__rightMiddleUsername {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #chat__rightMiddle {
-    height: calc(100% - 90px);
-    overflow-y: auto;
-    overflow-x: hidden;
+  height: calc(100% - 90px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#chat__rightMiddle::-webkit-scrollbar {
+  width: 6px;
+  
+}
+
+#chat__rightMiddle::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  border-radius: 9999px;
+}
+
+#chat__rightMiddle::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
+  border-radius: 9999px;
 }
 
 .chat__rightBottom {
-    width: calc(100% - 20px);
+  width: calc(100% - 20px);
+}
+
+@media (max-width: 768px) {
+    .chat__leftMiddleChatContainer {
+        width: 70%;
+    }
+}
+
+@media (max-width: 500px) {
+    .chat__leftMiddleChatContainer {
+        width: 85%;
+    }
 }

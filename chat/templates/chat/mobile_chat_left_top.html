@@ -1,5 +1,8 @@
 {% load static %}
 
+{% comment %}Custom css{% endcomment %}
+<link rel="stylesheet" href="{% static 'css/mobile_chat_left_top.css' %}">
+
 <div id="home__rightTopMainContent" class="pr-3">
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-x-1">
@@ -11,10 +14,6 @@
         </div>
 
         <div class="flex items-center gap-x-3">
-            <button id="create__chatGroup" class="flex items-center gap-x-0.5 py-1 px-3 text-slate-100 bg-indigo-500 rounded cursor-pointer hover:bg-indigo-600 hover:shadow transition-all duration-300 ease-in-out">
-                <span class="iconify" data-icon="akar-icons:people-group"></span>
-                Create Group
-            </button>
             <a href="{% url 'account:logout' %}" class="flex items-center gap-x-0.5 py-1 px-3 text-slate-100 bg-rose-600 rounded cursor-pointer hover:bg-rose-700 hover:shadow transition-all duration-300 ease-in-out">
                 <span class="iconify" data-icon="ri:logout-box-r-line"></span>
                 Logout
@@ -22,4 +21,10 @@
         </div>
     </div>
     <div class="w-full h-[1px] bg-slate-500 mt-1"></div>
+</div>
+
+<div class="fixed bottom-1 right-3">
+    <button id="create__chatGroupForMobile" class="rounded-full cursor-pointer">
+        <span class="iconify text-4xl text-indigo-400 shadow-lg rounded-full" data-icon="akar-icons:circle-plus-fill"></span>
+    </button>
 </div>
