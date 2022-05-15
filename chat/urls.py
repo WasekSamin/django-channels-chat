@@ -8,4 +8,5 @@ urlpatterns = [
     path("chat/<str:room>/", ChatroomView.as_view(), name="chatroom"),
     path("create-chatroom/<int:user_id>/", CreateChatroomView.as_view(), name="create-chatroom"),
     path("create-message/", CreateMessageView.as_view(), name="create-message"),
+    path("group/<str:room>/", GroupChatroomView.as_view(), name="group"),
 ]

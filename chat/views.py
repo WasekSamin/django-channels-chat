@@ -1,3 +1,4 @@
+from gettext import find
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views import View
@@ -59,6 +60,68 @@ def find_accounts_with_last_msg(accounts, last_msg_list, current_user):
     return last_msg_list
 
 
+### For group ####
+# Find all the group message seen list for current user
+def find_user_group_msg_seen_list(group_msg_seen_list, user_group_list, group_list):
+    for group in user_group_list:
+        group_msg_seen_obj = find_obj(group_msg_seen_list, "room", group["room"], 0, len(group_msg_seen_list))
+
+        if group_msg_seen_obj is not None:
+            group_msg_seen_obj = GroupChatMessageSeen(**group_msg_seen_obj)
+            group_list.append({
+                "group": group,
+                "group_message_seen": group_msg_seen_obj
+            })
+        else:
+            group_list.append({
+                "group": group,
+                "group_message_seen": None
+            })
+    return group_list
+
+
+# Find all the group message seen with notification for current user
+def find_user_group_with_notified_list(group_msg_seen_list, group_list, current_user):
+    for msg_seen in group_msg_seen_list:
+        if msg_seen["group_message_seen"] is not None and current_user in msg_seen["group_message_seen"].users.all():
+            group_list.append({
+                "group": msg_seen["group"],
+                "notify": False
+            })
+        elif msg_seen["group_message_seen"] is not None:
+            group_list.append({
+                "group": msg_seen["group"],
+                "notify": True
+            })
+        else:
+            group_list.append({
+                "group": msg_seen["group"],
+                "notify": False
+            }) 
+    return group_list
+
+
+# Find all the last message of the group of current user
+def find_user_group_last_msg(user_group_list, last_msg_list):
+    for group in user_group_list:
+        last_msg = GroupChat.objects.filter(room=group["group"]["room"]).last()
+
+        message = None
+        if last_msg:
+            message = last_msg.message
+        else:
+            message = "There is no message yet!"
+        
+        last_msg_list.append({
+            "group": group["group"],
+            "notify": group["notify"],
+            "last_msg": message
+        })
+    return last_msg_list
+
+
+
+
 class HomeView(LoginRequiredMixin, View):
     login_url = '/account/login/'
 
@@ -90,8 +153,41 @@ class HomeView(LoginRequiredMixin, View):
         get_accounts_with_notify_and_last_msg = find_accounts_with_last_msg(get_user_notified_list, last_msg_list, request.user)
         # print(get_accounts_with_notify_and_last_msg)
 
+        ##### For group #####
+        group_chatrooms = GroupChatroom.objects.all()
+        group_chatroom_list = list(map(lambda i: {
+            "id": i.id,
+            "room": i.room,
+            "given_room_name": i.given_room_name,
+            "creator": i.creator,
+            "users": i.users,
+            "created_at": i.created_at
+        }, group_chatrooms))
+
+        # Show all the groups that request.user is joined in
+        group_list = []
+        get_user_connected_group_list = find_user_connected_groups(group_chatroom_list, group_list, request.user)
+
+        # User group notified list
+        group_msg_seens = GroupChatMessageSeen.objects.values()
+        group_msg_seen_list = list(map(lambda i: i, group_msg_seens))
+
+        group_list = []
+        # Find all the group message seen list for current user
+        find_group_msg_seen_list = find_user_group_msg_seen_list(group_msg_seen_list, get_user_connected_group_list, group_list)
+        # print(find_group_msg_seen_list)
+        group_list = []
+        # Find all the group message seen with notification for current user
+        find_user_group_with_notify_list = find_user_group_with_notified_list(find_group_msg_seen_list, group_list, request.user)
+        # print(find_user_group_with_notify_list)
+        last_msg_list = []
+        # Find all the last message of the group of current user
+        find_user_group_last_msg_with_notify = find_user_group_last_msg(find_user_group_with_notify_list, last_msg_list)
+        # print(find_user_group_last_msg_with_notify)
+
         args = {
-            "accounts": get_accounts_with_notify_and_last_msg
+            "accounts": get_accounts_with_notify_and_last_msg,
+            "groups": find_user_group_last_msg_with_notify,
         }
         return render(request, "chat/home.html", args)
 
@@ -212,8 +308,41 @@ class ChatroomView(LoginRequiredMixin, View):
             # print(get_chat_list)
             quick_sort(get_chat_list, "id", 0, len(get_chat_list) - 1)
 
+            ##### For group #####
+            group_chatrooms = GroupChatroom.objects.all()
+            group_chatroom_list = list(map(lambda i: {
+                "id": i.id,
+                "room": i.room,
+                "given_room_name": i.given_room_name,
+                "creator": i.creator,
+                "users": i.users,
+                "created_at": i.created_at
+            }, group_chatrooms))
+
+            # Show all the groups that request.user is joined in
+            group_list = []
+            get_user_connected_group_list = find_user_connected_groups(group_chatroom_list, group_list, request.user)
+
+            # User group notified list
+            group_msg_seens = GroupChatMessageSeen.objects.values()
+            group_msg_seen_list = list(map(lambda i: i, group_msg_seens))
+
+            group_list = []
+            # Find all the group message seen list for current user
+            find_group_msg_seen_list = find_user_group_msg_seen_list(group_msg_seen_list, get_user_connected_group_list, group_list)
+            # print(find_group_msg_seen_list)
+            group_list = []
+            # Find all the group message seen with notification for current user
+            find_user_group_with_notify_list = find_user_group_with_notified_list(find_group_msg_seen_list, group_list, request.user)
+            # print(find_user_group_with_notify_list)
+            last_msg_list = []
+            # Find all the last message of the group of current user
+            find_user_group_last_msg_with_notify = find_user_group_last_msg(find_user_group_with_notify_list, last_msg_list)
+            # print(find_user_group_last_msg_with_notify)
+
         args = {
             "accounts": get_accounts_with_notify_and_last_msg,
+            "groups": find_user_group_last_msg_with_notify,
             "user1": user1,
             "user2": user2,
             "chats": get_chat_list,
@@ -282,3 +411,127 @@ class CreateMessageView(LoginRequiredMixin, View):
         json_resp = {"error": False}
 
         return JsonResponse(json_resp, safe=False)
+
+
+# Find all the groups that request.user is joined in
+def find_user_connected_groups(group_chatroom_list, group_list, current_user):
+    group_list = [group for group in group_chatroom_list if current_user in group["users"].all()]
+    return group_list
+
+def update_group_message_seen(group_msg_seen_list, room, current_user):
+    group_msg_seen_obj = find_obj(group_msg_seen_list, "room", room, 0, len(group_msg_seen_list))
+
+    if group_msg_seen_obj is not None:
+        group_msg_seen_obj = GroupChatMessageSeen(**group_msg_seen_obj)
+
+        if current_user not in group_msg_seen_obj.users.all():
+            group_msg_seen_obj.users.add(current_user.id)
+
+            return True
+    return False
+
+
+class GroupChatroomView(LoginRequiredMixin, View):
+    login_url = "/account/login/"
+
+    def get(self, request, room):
+        #### For accounts #####
+        accounts = Account.objects.values()
+        chat_nofifies = ChatMessageSeen.objects.all()
+        chat_notify_list = list(map(lambda i: {
+            "id": i.id,
+            "room": i.room,
+            "chatroom": i.chatroom,
+            "sender": i.sender,
+            "receiver": i.receiver,
+            "message_seen": i.message_seen,
+            "sender_email": i.sender_email,
+            "receiver_email": i.receiver_email
+        }, chat_nofifies))
+
+        copied_chat_notify_list = deepcopy(chat_notify_list)
+        item_list = []
+        # Find all the chat nofication where request.user is as receiver
+        get_user_with_notify_list = find_user_chat_notification_list(copied_chat_notify_list, item_list, request.user)
+        # print(get_user_with_notify_list)
+        notified_account_list = []
+        # Adding all the accounts with notification info
+        get_user_notified_list = find_user_with_notified_list(accounts, get_user_with_notify_list, notified_account_list)
+        # print(get_user_notified_list)
+        last_msg_list = []
+        # Fetching last message between each account and the current user
+        get_accounts_with_notify_and_last_msg = find_accounts_with_last_msg(get_user_notified_list, last_msg_list, request.user)
+        # print(get_accounts_with_notify_and_last_msg)
+
+        #### For groups ####
+        group_chatrooms = GroupChatroom.objects.all()
+        group_chatroom_list = list(map(lambda i: {
+            "id": i.id,
+            "room": i.room,
+            "given_room_name": i.given_room_name,
+            "creator": i.creator,
+            "users": i.users,
+            "created_at": i.created_at
+        }, group_chatrooms))
+        
+        group_chatroom_obj = find_obj(group_chatroom_list, "room", room, 0, len(group_chatroom_list))
+
+        if group_chatroom_obj:
+            group_users = group_chatroom_obj["users"].all()
+
+            group_chats = GroupChat.objects.all()
+            group_chat_list = list(map(lambda i: {
+                "id": i.id,
+                "room": i.room,
+                "group_chatroom": i.group_chatroom,
+                "sender": i.sender,
+                "message": i.message,
+                "created_at": i.created_at.strftime("%b %d, %Y %I:%M %p")
+            }, group_chats))
+
+            # If user is in the group
+            if request.user in group_users:
+                copied_group_chats = deepcopy(group_chat_list)
+                item_list = []
+                get_chat_list = find_room_all_chats(copied_group_chats, item_list, group_chatroom_obj["room"])
+                quick_sort(get_chat_list, "id", 0, len(get_chat_list) - 1)
+
+                ##### For group #####
+                # Show all the groups that request.user is joined in
+                group_list = []
+                get_user_connected_group_list = find_user_connected_groups(group_chatroom_list, group_list, request.user)
+
+                # User group notified list
+                group_msg_seens = GroupChatMessageSeen.objects.values()
+                group_msg_seen_list = list(map(lambda i: i, group_msg_seens))
+
+                group_list = []
+                # Find all the group message seen list for current user
+                find_group_msg_seen_list = find_user_group_msg_seen_list(group_msg_seen_list, get_user_connected_group_list, group_list)
+                # print(find_group_msg_seen_list)
+                group_list = []
+                # Find all the group message seen with notification for current user
+                find_user_group_with_notify_list = find_user_group_with_notified_list(find_group_msg_seen_list, group_list, request.user)
+                # print(find_user_group_with_notify_list)
+                last_msg_list = []
+                # Find all the last message of the group of current user
+                find_user_group_last_msg_with_notify = find_user_group_last_msg(find_user_group_with_notify_list, last_msg_list)
+                # print(find_user_group_last_msg_with_notify)
+
+                # Update group message seen notification
+                update_group_message_notification = update_group_message_seen(group_msg_seen_list, group_chatroom_obj["room"], request.user)
+
+                # chat_notify_list
+            else:   # --> Else if user not in the group, redirect to home page
+                return redirect("chat:home")
+        else:
+            return redirect("chat:home")
+
+        args = {
+            "accounts": get_accounts_with_notify_and_last_msg,
+            "groups": find_user_group_last_msg_with_notify,
+            "group_chatroom_obj": group_chatroom_obj,
+            "chats": get_chat_list,
+            "group_notify_status": update_group_message_notification,
+        }
+        return render(request, "chat/group_chat.html", args)

@@ -58,7 +58,6 @@ class GroupChat(models.Model):
     room = models.SlugField(max_length=20, null=True)
     group_chatroom = models.ForeignKey(GroupChatroom, on_delete=models.CASCADE, related_name="group_chatroom")
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="group_sender")
-    receiver = models.ManyToManyField(User, blank=True)
     message = models.TextField(null=True)
     created_at = models.DateTimeField(default=datetime.now)
 
@@ -69,8 +68,7 @@ class GroupChat(models.Model):
 class GroupChatMessageSeen(models.Model):
     room = models.SlugField(max_length=20, null=True)
     group_chatroom = models.OneToOneField(GroupChatroom, on_delete=models.CASCADE, related_name="group_chatroom_chat_message_seen")
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="group_sender_message_seen")
-    receiver = models.ManyToManyField(User, blank=True)
+    users = models.ManyToManyField(User, blank=True)
     created_at = models.DateTimeField(default=datetime.now)
 
     def __str__(self):

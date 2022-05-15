@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+
+{% comment %}Custom js{% endcomment %}
+<script src="{% static 'js/group_chat.js' %}" defer></script>
+
+<div class="max-w-screen-2xl mx-auto">
+    <div class="flex">
+        {% include "chat/chat_left.html" %}
+        {% include "chat/group_chat_right.html" %}
+    </div>
+
+    {{ request.user.id|json_script:"user__id" }}
+</div>
+{% endblock %}

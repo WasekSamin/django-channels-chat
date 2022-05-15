@@ -54,6 +54,5 @@ class GroupChatAdmin(admin.ModelAdmin):
 class GroupChatMessageSeenAdmin(admin.ModelAdmin):
     list_display = (
         "id", "room",
-        "group_chatroom", 
-        "sender", "created_at"
+        "group_chatroom", "created_at"
     )

@@ -1,28 +1,72 @@
 window.addEventListener("DOMContentLoaded", () => {
+    const chatRightMiddle = document.getElementById("chat__rightMiddle");
+    const chatMsgInput = document.getElementById("chat__messageInput");
+    const chatSubmitBtn = document.getElementById("chat__submitBtn");
+    const chatMsgForm = document.getElementById("chat__msgForm");
+
     const createChatGroup = document.getElementById("create__chatGroup");
     const chatLeftBottomUsers = document.getElementById("chat__leftBottomUsers");
+
     const finishCreateGroupBtn = document.getElementById("finish_create_group");
     const chatGroupModalErrorMsg = document.getElementById("group__modalErrorMsg");
     let groupSelectedUsers = [];
 
+    const ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/");
     let conn = false;
 
-    const ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/");
-
     ws.addEventListener("open", () => {
-        console.log("Opened");
         conn = true;
+        console.log("OPENED");
 
+        const currentLoc = window.location.href;
         ws.send(JSON.stringify({
             command: "join",
-            groupName: "public"
+            groupChat: true,
+            groupName: currentLoc
         }));
-    });
+
+        // By default, submit button is disabled
+        chatSubmitBtn.disabled = true;
+        chatRightMiddle.scroll({top: chatRightMiddle.scrollHeight});
+
+        // If user type something, enable the submit button, else disable it
+        chatMsgInput.addEventListener("keyup", e => {
+            const msgVal = e.target.value;
+
+            if (msgVal.trim() === "") {
+                chatSubmitBtn.disabled = true;
+                chatSubmitBtn.querySelector(".iconify").classList.remove("text-slate-300");
+                chatSubmitBtn.querySelector(".iconify").classList.add("text-slate-500");
+            } else {
+                chatSubmitBtn.disabled = false;
+                chatSubmitBtn.querySelector(".iconify").classList.remove("text-slate-500");
+                chatSubmitBtn.querySelector(".iconify").classList.add("text-slate-300");
+            }
+        });
+
+        chatMsgForm.addEventListener("submit", e => {
+            e.preventDefault();
+
+            if (chatMsgInput.value.trim() === "") return;
+            
+            sendMessage(chatMsgInput.value.trim());
+            chatMsgForm.reset();
+        });
+
+        // Send message via socket
+        function sendMessage(msg) {
+            ws.send(JSON.stringify({
+                command: "group_send",
+                message: msg,
+                room: window.location.href
+            }))
+        }
+    })
 
     ws.onmessage = e => {
         if (conn) {
             const data = JSON.parse(e.data);
-            console.log(data);
+            console.log("DATA:", data);
 
             // Updating user online status
             if (data.connect) {
@@ -33,6 +77,10 @@ window.addEventListener("DOMContentLoaded", () => {
                     
                     accountStatus.classList.remove("text-rose-500");
                     accountStatus.classList.add("text-green-500");
+
+                    const onlineStatus = document.getElementById("online__status");
+                    onlineStatus.classList.remove("text-rose-500");
+                    onlineStatus.classList.add("text-green-500");
                 }
             } else if (data.disconnect) {
                 const account = document.getElementById(`account-${data.user_id}`);
@@ -42,25 +90,113 @@ window.addEventListener("DOMContentLoaded", () => {
                     
                     accountStatus.classList.remove("text-green-500");
                     accountStatus.classList.add("text-rose-500");
+
+                    const onlineStatus = document.getElementById("online__status");
+                    onlineStatus.classList.add("text-rose-500");
+                    onlineStatus.classList.remove("text-green-500");
                 }
-            } else if (data.create_message_success) {
+            } else if (data.group_create_message_success) {   // Sender side
                 ws.send(JSON.stringify({
                     ...data,
-                    receiverCurrentLoc: "home",
-                    command: "receive_message"
+                    receiverCurrentLoc: "group_chatroom",
+                    currentLoc: window.location.href,
+                    receive_users: data.receive_users,
+                    command: "group_receive_message"
                 }));
-            } else if (data.receive_message_success) {
-                if (data.show_as_notification) {
-                    // Updating last message on receiver side
-                    const account = document.getElementById(`account-${data.sender_id}`);
-                    const lastMsg = account.querySelector(".last_message");
+                
+                let currentLoc = window.location.href.split("/");
+                currentLoc = currentLoc[currentLoc.length - 2];
+                const userId = document.getElementById("user__id");
+
+                let senderId;
+
+                if (userId) {
+                    senderId = JSON.parse(userId.innerText);
+                } else {
+                    window.location.reload();
+                }
+
+                // Appending message on sender side
+                if (currentLoc == data.room && data.sender_id === senderId) {
+                    // Updating last message on sender side
+                    const group = document.getElementById(`group-${data.group_id}`);
+                    const lastMsg = group.querySelector(".last_message");
+
                     lastMsg.innerText = data.message;
 
-                    const status = document.getElementById(`status-${data.sender_id}`);
-                    const showStatus = status.querySelector(".iconify");
+                    const chatDiv = document.getElementById("chat__rightChatDiv");
 
-                    showStatus.classList.remove("text-transparent");
-                    showStatus.classList.add("text-indigo-400");
+                    const msgDiv = document.createElement("div");
+                    msgDiv.setAttribute("class", "flex gap-x-1 w-1/2 place-self-end")
+                    msgDiv.innerHTML = `
+                        <div>
+                            <img src="/static/images/user.png" class="w-[20px] min-w-[20px] h-[20px] mt-1 object-contain" alt="">
+                        </div>
+                        <div class="flex flex-col gap-y-1 text-slate-300 text-sm">
+                            <h5 class="font-semibold chat__rightMiddleUsername">${data.sender_username}</h5>
+                            <p class="break-all">${data.message}</p>
+                            <p class="text-xs">${data.created_at}</p>
+                        </div>
+                    `
+                    chatDiv.appendChild(msgDiv);
+
+                    chatRightMiddle.scroll({top: chatRightMiddle.scrollHeight, behavior: "smooth"});
+                }
+            } else if (data.group_receive_message_success) {  // Receiver side
+                let currentLoc = window.location.href.split("/");
+                currentLoc = currentLoc[currentLoc.length - 2];
+                const userId = JSON.parse(document.getElementById("user__id").innerText);
+                
+                console.log("FROM RECEIVER SIDE DATA:", data);
+
+                if (currentLoc === data.room) {
+                    // Append message on receiver side
+                    if (data.append_to_message_field && userId === data["receiver_id"]) {
+                        const group = document.getElementById(`group-${data.group_id}`);
+
+                        if (group) {
+                            // Updating last message on receiver side
+                            const lastMsg = group.querySelector(".last_message");
+
+                            lastMsg.innerText = data.message;
+
+                            const chatDiv = document.getElementById("chat__rightChatDiv");
+
+                            const msgDiv = document.createElement("div");
+                            msgDiv.setAttribute("class", "flex gap-x-1 w-1/2")
+                            msgDiv.innerHTML = `
+                                <div>
+                                    <img src="/static/images/user.png" class="w-[20px] min-w-[20px] h-[20px] mt-1 object-contain" alt="">
+                                </div>
+                                <div class="flex flex-col gap-y-1 text-slate-300 text-sm">
+                                    <h5 class="font-semibold chat__rightMiddleUsername">${data.sender_username}</h5>
+                                    <p class="break-all">${data.message}</p>
+                                    <p class="text-xs">${data.created_at}</p>
+                                </div>
+                            `
+                            chatDiv.appendChild(msgDiv);
+
+                            chatRightMiddle.scroll({top: chatRightMiddle.scrollHeight, behavior: "smooth"});
+                        }
+                    }
+                } else {    // Receiver side
+                    // If current user is in different chatroom
+                    const group = document.getElementById(`group-${data.group_id}`);
+
+                    if (group) {
+                        // Updating last message on receiver side
+                        const lastMsg = group.querySelector(".last_message");
+
+                        lastMsg.innerText = data.message;
+
+                        const chatDiv = document.getElementById("chat__rightChatDiv");
+
+                        const status = document.getElementById(`group-status-${data.group_id}`);
+                        const showStatus = status.querySelector(".iconify")
+
+                        showStatus.classList.remove("text-transparent");
+                        showStatus.classList.add("text-indigo-400");
+                    }
                 }
             } else if (data.group_created) {
                 const a = document.createElement("a");
@@ -91,29 +227,6 @@ window.addEventListener("DOMContentLoaded", () => {
                         window.location.href = `/group/${data.room}`;
                     }
                 }
-            } else if (data.group_create_message_success) {
-                ws.send(JSON.stringify({
-                    ...data,
-                    receiverCurrentLoc: "home",
-                    command: "group_receive_message"
-                }));
-            } else if (data.group_receive_message_success) {
-                console.log("FROM GROUP RECEIVE MESSAGE:", data);
-                if (data.show_as_notification) {
-                    // Updating last message on receiver side
-                    const group = document.getElementById(`group-${data.group_id}`);
-
-                    if(group) {
-                        const lastMsg = group.querySelector(".last_message");
-                        lastMsg.innerText = data.message;
-
-                        const status = document.getElementById(`group-status-${data.group_id}`);
-                        const showStatus = status.querySelector(".iconify");
-
-                        showStatus.classList.remove("text-transparent");
-                        showStatus.classList.add("text-indigo-400");
-                    }
-                }
             }
         }
     }
@@ -136,9 +249,8 @@ window.addEventListener("DOMContentLoaded", () => {
             let userInfo = [];
 
             users.forEach(user => {
-                console.log(user)
                 const userTagsInfo = user.querySelector(".chat__userUsername");
-                
+
                 if (userTagsInfo) {
                     const userId = Number(userTagsInfo.id.split("-")[1]);
                     const image = document.getElementById(`account-${userId}`).querySelector("img").src;

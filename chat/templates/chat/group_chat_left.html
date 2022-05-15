@@ -1,0 +1,11 @@
+{% load static %}
+
+{% comment %}Custom css{% endcomment %}
+<link rel="stylesheet" href="{% static 'css/chat_left.css' %}">
+
+<div class="w-[25%] h-screen pt-3 text-sm border-r border-gray-500">
+    <div class="mb-3 px-3">
+        {% include "chat/chat_left_top.html" %}
+    </div>
+    {% include "chat/group_chat_left_bottom.html" %}
+</div>

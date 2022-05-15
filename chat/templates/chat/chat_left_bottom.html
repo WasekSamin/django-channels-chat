@@ -6,14 +6,30 @@
             <a href="{% url 'chat:create-chatroom' account.account.id %}" id="account-{{ account.account.id}}" class="flex items-center">
                 <img src="{% static 'images/user.png' %}" class="w-[20px] h-[20px] object-contain mr-1" alt="">
                 <div class="flex flex-col gap-y-0.5 pl-0.5 chat__userInfo">
-                    <p id="user-{{ account.account.id }}" class="font-semibold text-slate-300 tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">{{ account.account.username }}</p>
+                    <p id="user-{{ account.account.id }}" class="font-semibold text-slate-300 tracking-wide whitespace-nowrap overflow-hidden text-ellipsis chat__userUsername">{{ account.account.username }}</p>
                     <p class="text-slate-300 text-xs whitespace-nowrap overflow-hidden text-ellipsis last_message">{{ account.last_msg }}</p>
-                    <p class="flex items-center text-xs font-medium text-slate-400 user__status">Status: <span class="iconify text-xl text-green-500" data-icon="ci:dot-03-m"></span></p>
+                    <p class="flex items-center text-xs font-medium text-slate-400 user__status">Status: <span class="iconify text-xl {% if account.account.is_online %}text-green-500{% else %}text-rose-500{% endif %}" data-icon="ci:dot-03-m"></span></p>
                 </div>
                 <div id="status-{{ account.account.id }}">
                     <span class="iconify text-lg {% if account.notify and not chat_notify_status %}text-indigo-400{% else %}text-transparent{% endif %}" data-icon="ci:dot-03-m"></span>
                 </div>
             </a>
         {% endfor %}
+
+        {% if groups %}
+            {% for group in groups %}
+                <a href="{% url 'chat:group' group.group.room %}" id="group-{{group.group.id}}" class="flex items-center">
+                    <span class="iconify text-lg mr-1 text-sky-300" data-icon="el:group-alt"></span>
+                    <div class="flex flex-col gap-y-0.5 pl-0.5 chat__userInfo">
+                        <p id="group-{{ group.group.id }}" class="font-semibold text-slate-300 tracking-wide whitespace-nowrap overflow-hidden text-ellipsis">{{ group.group.given_room_name }}</p>
+                        <p class="text-slate-300 text-xs whitespace-nowrap overflow-hidden text-ellipsis last_message">{{ group.last_msg }}</p>
+                        <p class="flex items-center text-xs font-medium text-slate-400 user__status">Status: <span class="iconify text-xl text-green-500" data-icon="ci:dot-03-m"></span></p>
+                    </div>
+                    <div id="group-status-{{ group.group.id }}">
+                        <span class="iconify text-xl {% if group.notify and not group_notify_status %}text-indigo-400{% else %}text-transparent{% endif %}" data-icon="ci:dot-03-m"></span>
+                    </div>
+                </a>
+            {% endfor %}
+        {% endif %}
     </div>
 {% endif %}
