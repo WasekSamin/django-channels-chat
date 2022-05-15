@@ -11,7 +11,7 @@ from .random_slug_generator import random_slug_generator
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         await self.accept()
-        print(f"{self.scope['user']} joined!")
+        # print(f"{self.scope['user']} joined!")
 
     # Updating user online status
 
@@ -28,7 +28,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             account_obj.save()
 
     async def receive_json(self, data):
-        print(f"{data=}")
+        # print(f"{data=}")
         private_chat = data.get("privateChat", None)
         group_create = data.get("groupCreate", None)
         group_chat = data.get("groupChat", None)
@@ -52,7 +52,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 )
                 self.groups.append(room_name)
 
-                print("GROUPS:", self.groups)
+                # print("GROUPS:", self.groups)
             elif group_create:
                 room_name = data["roomName"]
                 users = data["users"]
@@ -75,7 +75,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 )
                 self.groups.append(room_name)
 
-                print("GROUPS:", self.groups)
+                # print("GROUPS:", self.groups)
 
             for group in self.groups:
                 # Trigger when user connect to socket
@@ -87,7 +87,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                         "user_id": self.scope["user"].id
                     }
                 )
-        # Send message
+        # Send message -> Private chat
         elif data["command"] == "send":
             room = data["room"].split("/")[-2]
             # print(room)
@@ -108,6 +108,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                         "create_message_success": True
                     }
                 )
+        # Send message -> Group chat
         elif data["command"] == "group_send":
             room = data["room"].split("/")[-2]
 
@@ -128,6 +129,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                         "group_create_message_success": True
                     }
                 )
+        # Receive message -> Private chat
         elif data["command"] == "receive_message":
             if self.scope["user"].id == data["receiver_id"]:
                 receiver_current_loc = data["receiverCurrentLoc"]
@@ -174,9 +176,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                         )
                         
                         await database_sync_to_async(self.chatMessageNotify)(sender_id=send_data["sender_id"], room=send_data["room"], receiver=self.scope["user"])
+        # Receive message -> Group chat
         elif data["command"] == "group_receive_message":
             if self.scope["user"].id in data["receive_users"]:
-                print(self.scope["user"].id, "is in the group message")
+                # print(self.scope["user"].id, "is in the group message")
                 receiver_current_loc = data["receiverCurrentLoc"]
 
                 send_data = {
@@ -228,13 +231,13 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
 
     async def disconnect(self, data):
-        print(f"{self.scope['user']} is disconnected!")
-        print(self.groups)
+        # print(f"{self.scope['user']} is disconnected!")
+        # print(self.groups)
         # print("DISCONNECT FROM GROUP:", self.group_name)
         await database_sync_to_async(self.update_user_status)(email=self.scope["user"].email, is_online=False)
         # # Trigger when user get disconnect from socket
         for group in self.groups:
-            print(group)
+            # print(group)
             await self.channel_layer.group_send(
                 group,
                 {
@@ -370,11 +373,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     # For receiving message -> Group chat
     async def group_receive_message(self, event):
-        print("RECEIVER:", self.scope["user"])
+        # print("RECEIVER:", self.scope["user"])
         # print(f"{event=}")
         
         if self.scope["user"].id != event["sender_id"]:
-            print(self.scope["user"])
+            # print(self.scope["user"])
             await self.send_json({
                 "group_id": event["group_id"],
                 "room": event["room"],
@@ -391,7 +394,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     # For message notify -> Private chat
     def chatMessageNotify(self, sender_id, room, receiver):
-        print("FROM NOTIFICATION!")
+        # print("FROM NOTIFICATION!")
         
         accounts = Account.objects.values()
         account_list = list(map(lambda i: i, accounts))
@@ -400,10 +403,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         chat_notification_list = list(map(lambda i: i, chat_notifications))
 
         sender = find_obj(account_list, "id", sender_id, 0, len(account_list))
-        print(sender)
+        # print(sender)
 
         chat_notify_obj = find_obj(chat_notification_list, "room", room, 0, len(chat_notification_list))
-        print(chat_notify_obj)
+        # print(chat_notify_obj)
 
         if sender is not None:
             sender = Account(**sender)
@@ -422,7 +425,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 chatroom_list = list(map(lambda i: i, chatrooms))
 
                 chatroom_obj = find_obj(chatroom_list, "room", room, 0, len(chatroom_list))
-                print(chatroom_obj)
+                # print(chatroom_obj)
                 chatroom_obj = Chatroom(**chatroom_obj)
 
                 ChatMessageSeen.objects.create(
@@ -437,7 +440,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     # Message notify -> Group chat
     def group_chat_message_notify(self, sender_id, room, receiver, seen):
-        print("INSIDE GROUP MESSAGE SEEN")
+        # print("INSIDE GROUP MESSAGE SEEN")
         group_msg_seens = GroupChatMessageSeen.objects.values()
         group_msg_seen_list = list(map(lambda i: i, group_msg_seens))
 
@@ -477,14 +480,14 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     # Create group chatroom
     async def group_create(self, event):
         users = event["users"]
-        print("users:", users)
+        # print("users:", users)
         given_room_name = event["room_name"]
         creatorId = event["creatorId"]
 
         group_chatroom_obj = await database_sync_to_async(self.create_group)(given_room_name=given_room_name, users=users, creatorId=creatorId)
 
         if group_chatroom_obj is not None:
-            print(group_chatroom_obj)
+            # print(group_chatroom_obj)
             await self.channel_layer.group_send(
                 "public",
                 {
@@ -500,7 +503,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
 
     def create_group(self, given_room_name, users, creatorId):
-        print("FROM CREATE GROUP")
+        # print("FROM CREATE GROUP")
 
         if self.scope["user"].id == creatorId:
             group_chatrooms = GroupChatroom.objects.values()
