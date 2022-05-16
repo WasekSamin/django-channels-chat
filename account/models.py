@@ -40,7 +40,6 @@ class Account(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_online = models.BooleanField(default=True)
-    # profile_pic = models.ImageField(null=True, blank=True)
     created_at = models.DateTimeField(default=datetime.now)
 
     objects = AccountManager()
